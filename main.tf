@@ -47,6 +47,24 @@ resource "aws_vpc" "this" {
 }
 
 # ---------------------------------------------------------------------------
+# Default security group: adopted and emptied. With no ingress/egress rules
+# declared, all traffic on the VPC's default SG is denied, forcing workloads
+# to use explicit, purpose-built security groups.
+# ---------------------------------------------------------------------------
+
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "${local.vpc_name}-default-sg-locked"
+      Environment = var.environment
+    }
+  )
+}
+
+# ---------------------------------------------------------------------------
 # Private subnets: one per service per AZ
 # ---------------------------------------------------------------------------
 

@@ -11,5 +11,6 @@
 - VPC Flow Logs to CloudWatch enabled by default, with in-module IAM
   role (or external role), configurable retention, traffic type and
   optional KMS encryption
+- Default security group adopted and emptied (all traffic denied on it)
 - Subnet capacity validation (services x AZs vs available subnet space)
   and capacity summary output

@@ -15,6 +15,7 @@ This module implements a private-only network layout intended for landing-zone a
 - One private subnet per service per AZ (`az_count`, 2-4) with a dedicated route table per service
 - Global and per-service custom routes (TGW, peering, NAT, IGW targets)
 - VPC Flow Logs to CloudWatch **enabled by default**, with the IAM role created in-module (or bring your own), configurable retention/traffic type and optional KMS encryption
+- **Default security group locked down**: the module adopts the VPC's default SG and removes all its rules, so nothing can accidentally rely on it
 - Capacity validation at plan time (services x AZs vs `2^subnet_newbits`) plus a `subnet_capacity_info` output for IPAM visibility
 - Validations: valid CIDR, unique service names, AZ count range
 
@@ -69,6 +70,7 @@ module "vpc" {
 | Name | Type |
 |------|------|
 | aws_vpc.this | resource |
+| aws_default_security_group.this | resource |
 | aws_subnet.private | resource |
 | aws_route_table.private | resource |
 | aws_route_table_association.private | resource |
