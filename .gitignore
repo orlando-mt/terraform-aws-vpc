@@ -5,6 +5,8 @@
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+# Example tfvars are documentation with placeholder values, not secrets
+!examples/**/*.tfvars
 crash.log
 crash.*.log
 override.tf

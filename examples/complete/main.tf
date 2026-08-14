@@ -5,21 +5,15 @@ provider "aws" {
 module "vpc" {
   source = "../../"
 
-  name_prefix = "example"
-  environment = "dev"
+  name_prefix = var.name_prefix
+  environment = var.environment
 
-  vpc_cidr       = "10.20.0.0/16"
-  subnet_newbits = 5 # /21 subnets, up to 32
-  az_count       = 3
+  vpc_cidr       = var.vpc_cidr
+  subnet_newbits = var.subnet_newbits
+  az_count       = var.az_count
 
-  # Each service gets 3 private subnets (one per AZ) and its own route table
-  services = [
-    { name = "eks" },
-    { name = "databases" },
-    { name = "messaging", tags = { Tier = "streaming" } }
-  ]
+  services = var.services
 
-  # Example: route all egress through a Transit Gateway
   custom_routes = var.transit_gateway_id != null ? [
     {
       cidr_block         = "0.0.0.0/0"
@@ -27,8 +21,5 @@ module "vpc" {
     }
   ] : []
 
-  common_tags = {
-    Project   = "example"
-    ManagedBy = "terraform"
-  }
+  common_tags = var.common_tags
 }
