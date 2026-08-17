@@ -9,7 +9,7 @@ az_count       = 3
 # Each service gets 3 private subnets (one per AZ) and its own route table
 services = [
   { name = "eks" },
-  { name = "databases" },
+  { name = "databases", tags = { "karpenter.sh/discovery" = "my-cluster" } },
   { name = "messaging", tags = { Tier = "streaming" } }
 ]
 
