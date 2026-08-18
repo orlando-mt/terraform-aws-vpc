@@ -57,15 +57,65 @@ variable "services" {
   }
 
   validation {
-    condition     = length(var.services) * var.az_count <= pow(2, var.subnet_newbits)
-    error_message = "Not enough subnet space: services * az_count exceeds 2^subnet_newbits. Increase subnet_newbits or reduce services."
+    condition     = (length(var.services) + 1) * var.az_count <= pow(2, var.subnet_newbits)
+    error_message = "Not enough subnet space: (services + 1 for public) * az_count exceeds 2^subnet_newbits. Increase subnet_newbits or reduce services."
   }
+}
+
+# --- Internet edge ---------------------------------------------------------
+
+variable "create_public_subnets" {
+  description = <<-EOT
+    Create public subnets and an internet gateway. Enable it when the VPC
+    provides its own egress or hosts internet-facing load balancers; leave it
+    off when egress is centralised in another account and reached through a
+    Transit Gateway.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "nat_gateway_mode" {
+  description = <<-EOT
+    Egress for the private subnets:
+      - none: no NAT. Either the VPC has no internet egress, or the default
+        route is injected through custom_routes towards a Transit Gateway.
+      - single: one NAT gateway shared by every zone. Cheapest, but traffic
+        crosses zones and egress stops when that zone fails.
+      - per_az: one NAT gateway per zone. Each zone egresses through its own,
+        with no cross-zone transfer and no shared failure domain.
+
+    Enabling NAT implies public subnets.
+  EOT
+  type        = string
+  default     = "none"
+
+  validation {
+    condition     = contains(["none", "single", "per_az"], var.nat_gateway_mode)
+    error_message = "nat_gateway_mode must be none, single or per_az."
+  }
+}
+
+variable "map_public_ip_on_launch" {
+  description = "Assign public addresses automatically in public subnets. Keep false and attach addresses explicitly"
+  type        = bool
+  default     = false
+}
+
+variable "public_subnet_tags" {
+  description = "Extra tags for the public subnets, e.g. kubernetes.io/role/elb = 1 for internet-facing load balancers"
+  type        = map(string)
+  default     = {}
 }
 
 # --- Routing ---------------------------------------------------------------
 
 variable "custom_routes" {
-  description = "Routes added to ALL service route tables (Transit Gateway, peering, NAT, IGW)"
+  description = <<-EOT
+    Routes added to every private route table (Transit Gateway, peering, NAT,
+    internet gateway). In a centralised egress design this is where the
+    default route towards the Transit Gateway goes.
+  EOT
   type = list(object({
     cidr_block                = string
     vpc_peering_connection_id = optional(string)
@@ -74,6 +124,13 @@ variable "custom_routes" {
     gateway_id                = optional(string)
   }))
   default = []
+
+  validation {
+    condition = var.nat_gateway_mode == "none" || !contains(
+      [for r in var.custom_routes : r.cidr_block], "0.0.0.0/0"
+    )
+    error_message = "The default route is already created by the NAT gateway. Remove 0.0.0.0/0 from custom_routes, or set nat_gateway_mode = \"none\"."
+  }
 }
 
 variable "service_specific_routes" {

@@ -38,6 +38,24 @@ variable "services" {
   }))
 }
 
+variable "create_public_subnets" {
+  description = "Create public subnets and an internet gateway"
+  type        = bool
+  default     = false
+}
+
+variable "nat_gateway_mode" {
+  description = "none, single or per_az"
+  type        = string
+  default     = "none"
+}
+
+variable "public_subnet_tags" {
+  description = "Extra tags for the public subnets"
+  type        = map(string)
+  default     = {}
+}
+
 variable "transit_gateway_id" {
   description = "Optional Transit Gateway for the default route"
   type        = string

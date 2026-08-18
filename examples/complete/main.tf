@@ -14,6 +14,10 @@ module "vpc" {
 
   services = var.services
 
+  create_public_subnets = var.create_public_subnets
+  nat_gateway_mode      = var.nat_gateway_mode
+  public_subnet_tags    = var.public_subnet_tags
+
   custom_routes = var.transit_gateway_id != null ? [
     {
       cidr_block         = "0.0.0.0/0"

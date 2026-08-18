@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.0] - 2026-08-16
+
+### Added
+- Optional internet edge: public subnets, internet gateway and NAT
+  gateways, either one per availability zone or a single shared one
+- Public subnet tags input, for load balancer discovery
+- Outputs for public subnets, internet gateway, NAT gateways and the
+  egress addresses used for partner allow-lists
+
+### Changed
+- **Breaking:** private route tables are now created per service *and*
+  availability zone instead of one per service, so each zone can egress
+  through the NAT gateway in its own zone. The `private_route_table_ids`
+  output is now keyed `<service>-<az index>`; use the new
+  `private_route_table_ids_by_service` output for the previous grouping.
+- Subnet capacity validation and the capacity output now account for the
+  public subnets
+
 ## [1.0.0] - 2026-07-30
 
 ### Added
